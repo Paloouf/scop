@@ -5,7 +5,7 @@ OBJ = $(SRC:.cpp=.o)
 CC = c++
 
 LFLAGS = -lGL -lGLU -lglut
-FLAGS = -Wall -Werror -Wextra -std=c++98
+FLAGS = -Wall -Werror -Wextra -std=c++11
 
 # ------------------------------ Colors ------------------------------
 
