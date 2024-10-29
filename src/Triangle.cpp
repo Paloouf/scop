@@ -12,4 +12,8 @@ Triangle::Triangle(Vertex* A, Vertex* B, Vertex* C): _A(A), _B(B), _C(C){
 
 Triangle::Triangle(){}
 
-Triangle::~Triangle(){}
+Triangle::~Triangle(){
+    delete _A;
+    delete _B;
+    delete _C;
+}

@@ -6,7 +6,9 @@ Object::Object(string filename) :_filename(filename){
 
 Object::Object(){}
 
-Object::~Object(){}
+Object::~Object(){
+
+}
 
 int Object::parseObj(string resource)
 {
@@ -52,17 +54,18 @@ void Object::storePoint(string line, int vertexIndex){
     string v, x, y, z;
     pointdata >> v >> x >> y >> z;
     _vertices.insert(make_pair(vertexIndex, new Vertex(stod(x), stod(y), stod(z))));
-    cout << setprecision(7);
-    cout << vertexIndex << " x:" << _vertices[vertexIndex]->getX() << " y:" << _vertices[vertexIndex]->getY() << " z:" << _vertices[vertexIndex]->getZ() << endl;
+    //cout << setprecision(7);
+    //cout << vertexIndex << " x:" << _vertices[vertexIndex]->getX() << " y:" << _vertices[vertexIndex]->getY() << " z:" << _vertices[vertexIndex]->getZ() << endl;
 }
 
 void Object::storeFace(string line){
     stringstream facedata(line);
     string f, a, b, c, d, e;
     facedata >> f >> a >> b >> c >> d >> e;
-    _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(b)], _vertices[stoi(c)]));
+    
     if (!d.empty())
         _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(c)], _vertices[stoi(d)]));
     if (!e.empty())
         _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(d)], _vertices[stoi(e)]));
+    _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(b)], _vertices[stoi(c)]));
 }
