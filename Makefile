@@ -1,11 +1,13 @@
 NAME = scop
-SRC = ${wildcard src/*.cpp}
+SRC = ${wildcard src/*.c*} glad/src/glad.cpp
 
 OBJ = $(SRC:.cpp=.o)
 CC = c++
 
-LFLAGS = -lGL -lGLU -lglut
+LFLAGS = -lGL -lGLU -lglfw -lglut -lm
 FLAGS = -Wall -Werror -Wextra -std=c++11
+
+INC = -I glad/include
 
 # ------------------------------ Colors ------------------------------
 
@@ -52,11 +54,11 @@ comp_start:
 clean:
 	$(CLEANED)
 
-	rm -f $(OBJ) *~ core *.core
+	rm -f $(OBJ) 
 
 
 fclean:
-	rm -f $(NAME) $(OBJ) *~ core *.core
+	rm -f $(NAME) $(OBJ) 
 	$(FCLEANED)
 
 re: clean all
@@ -65,4 +67,9 @@ re: clean all
 %.o: $(SRCDIR)%.cpp
 
 	@printf "🚧 $(BOLD_YELLOW)Make: $(NO_COLOR)Compilation des fichiers : %-33.33s\r$(NO_COLOR)" $@ $?
+	@${CC} ${FLAGS} -c $< -o $@
+
+
+glad.o: glad/src/glad.cpp
+	@printf "🚧 $(BOLD_YELLOW)Make: $(NO_COLOR)Compilation of glad.c: %-33.33s\r$(NO_COLOR)" $@
 	@${CC} ${FLAGS} -c $< -o $@
