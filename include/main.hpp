@@ -17,6 +17,9 @@ class Object;
 #include "Object.hpp"
 #include "Triangle.hpp"
 #include "Vertex.hpp"
+#include "VertexBuffer.hpp"
+#include "IndexBuffer.hpp"
+#include "vec3.hpp"
 
 void display(Object& obj);
 

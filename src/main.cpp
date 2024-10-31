@@ -75,41 +75,16 @@ void    processSpecialKeys(int key, int x, int y){
 	}
 }
 
-void    framebuffer_size_callback(GLFWwindow *window,int width, int height)
-{
-	(void)window;
-    (void)width;
-    (void)height;
-	glViewport(0, 0, WIDTH, HEIGHT);
-}
+// void    framebuffer_size_callback(GLFWwindow *window,int width, int height)
+// {
+// 	(void)window;
+//     (void)width;
+//     (void)height;
+// 	glViewport(0, 0, WIDTH, HEIGHT);
+// }
 
 
-void print_fps_counter(GLFWwindow *window) {
-    static double previousSeconds = glfwGetTime();
-    static int frameCount = 0;
-    double currentSeconds = glfwGetTime();
-    double elapsedSeconds = currentSeconds - previousSeconds;
 
-    // Increment frame count every frame
-    frameCount++;
-
-    // Update the FPS once per second
-    if (elapsedSeconds >= 1.0) {
-        double fps = (double)frameCount / elapsedSeconds;
-
-        // Reset the counter and timer
-        previousSeconds = currentSeconds;
-        frameCount = 0;
-
-        // Create a new window title with the FPS included
-        std::ostringstream oss;
-        oss.precision(2);
-        oss << std::fixed << "scop ltressen - FPS: " << fps;
-
-        // Set the new title
-        glfwSetWindowTitle(window, oss.str().c_str());
-    }
-}
 
 int main(int argc, char** argv) {
 
@@ -117,67 +92,42 @@ int main(int argc, char** argv) {
         return 1;
     }
     string av = argv[1];
-    //Object* obj = new Object(av);
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 8);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "scop ltressen", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-	    cout << "Failed to initialize GLAD\n";
-        return -1;
-    }
-    while (!glfwWindowShouldClose(window)){
-        print_fps_counter(window);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glEnable(GL_DEPTH_TEST);
-		glEnable(GL_MULTISAMPLE);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //display(*obj);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+    Object* obj = new Object(av);
+    (void)obj;
     return 0;
 }
 
 // void display(Object &obj) {
 //     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//     glUseProgram(obj.program);
 //     glLoadIdentity();
-//     float centerX = 0.0f, centerY = 0.0f, centerZ = 0.0f;
-//     int vertexCount = 0;
-//     for(std::map<int,Vertex*>::iterator it = obj.getVertices().begin(); it != obj.getVertices().end();it++){
-//         centerX += (*it).second->getX();
-//         centerY += (*it).second->getY();
-//         centerZ += (*it).second->getZ();
-//         vertexCount++;
-//     }
-//     centerX /= vertexCount;
-//     centerY /= vertexCount;
-//     centerZ /= vertexCount;
-//     glTranslatef(-centerX, -centerY, -centerZ);
-//     glRotatef(angle, 0.0f, 1.0f, 0.0f);
-//     glBegin(GL_TRIANGLES);
-//         for (std::vector<Triangle*>::iterator it = obj.getTriangles().begin() ; it != obj.getTriangles().end(); it++){
-//             glColor3f((*it)->_red, (*it)->_green, (*it)->_blue); 
-//             glVertex3f((*it)->getA()->getX(),(*it)->getA()->getY(),(*it)->getA()->getZ());
-//             glVertex3f((*it)->getB()->getX(),(*it)->getB()->getY(),(*it)->getB()->getZ());
-//             glVertex3f((*it)->getC()->getX(),(*it)->getC()->getY(),(*it)->getC()->getZ());
-//         }
-//     glEnd();
-//     angle += 0.5f;
-//     if (angle == 360.0f)
-//         angle = 0;
-//     glfwSwapBuffers();
+
+//     updateVBO();
+
+//     //glBindTexture(GL_TEXTURE_2D, textureID);
+
+//     obj.ibo->Bind();
+//     obj.vbo->Bind();
+//     glEnableVertexAttribArray(0); // Vertex positions
+    
+//     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+
+//    // glEnableVertexAttribArray(1); // Vertex textures
+//     //tbo->Bind();
+//     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
+
+// 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //To show with lines only
+
+//     glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, nullptr);
+
+//     glDisableVertexAttribArray(0);
+//     //glDisableVertexAttribArray(1);
+
+//     obj.vbo->Unbind();
+//     //tbo->Unbind();
+//     obj.ibo->Unbind();
+//     //drawFrustum(invViewProj);
+
 // }
 
 // REWRITE WITH PROPER FUNCTIONS LIKE DRAWELEMENTS SO USE VAOS AND VBOS, SHADERS AND FRAGMENT SHADERS U STUPID 
