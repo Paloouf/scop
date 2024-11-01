@@ -15,11 +15,10 @@ class Object;
 #include <cmath>
 #include <sstream>
 #include "Object.hpp"
-#include "Triangle.hpp"
-#include "Vertex.hpp"
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
-#include "vec3.hpp"
+#include "Vec3.hpp"
+#include "Mat4.hpp"
 
 void display(Object& obj);
 

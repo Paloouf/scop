@@ -1,10 +1,10 @@
 #pragma once
 #include "main.hpp"
+#include "Vec3.hpp"
 
-class Triangle;
-class Vertex;
 class IndexBuffer;
 class VertexBuffer;
+class Vec3;
 
 class Object{
     public:
@@ -19,8 +19,8 @@ class Object{
         void renderer();
         void draw();
         void createBuffers();
-        std::vector<Triangle*> &getTriangles(){return _triangles;};
-        std::map<int, Vertex*> &getVertices(){return _vertices;};
+        void print_fps_counter(GLFWwindow *window);
+        Vec3                centerCoords;
 
         GLFWwindow*         window;
         GLuint				program;
@@ -31,10 +31,10 @@ class Object{
 
         VertexBuffer*    vbo;
         IndexBuffer*     ibo;
+        unsigned int     VAO;
+        float          angle;
     private:
         Object();
         
         std::string  _filename;
-        std::map<int, Vertex*> _vertices;
-        std::vector<Triangle*> _triangles;
 };

@@ -1,44 +1,55 @@
 #include "../include/Object.hpp"
 
 Object::Object(string filename) :_filename(filename){
+    srand(time(NULL));
+    angle = 0;
     parseObj(filename);
+    centerCoords = Vec3::findCentroid(vertices);
     InitContext();
     parseShader();
     createBuffers();
-    renderer();
+    //renderer();
 }
 
 Object::Object(){}
 
 Object::~Object(){
-
+    //i need to free some shit probably
 }
 
 void Object::createBuffers(){
-    // for (float i: vertices)
-    //     std::cout << i << ' ';
-    // cout << "vertex puis index\n";
-    // for (uint i: indices)
-    //     cout << i << ' ';
     vbo = new VertexBuffer(vertices.data(), vertices.size() * sizeof(float));
     ibo = new IndexBuffer(indices.data(), indices.size());
-    //unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
     vbo->Bind();
     ibo->Bind();
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    //color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindVertexArray(0);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //To show with lines only
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    cout << ibo->GetCount() <<std::endl;
 }
 
 void Object::draw(){
     glUseProgram(program);
-    glBindVertexArray(vbo->getVbo());
+    //translate first to the center coordinates every draw call then make it rotate at speed angle
+    Mat4 rotation = Mat4::translate(-centerCoords.x,-centerCoords.y,-centerCoords.z) * Mat4::rotateY(angle);
+    GLuint rotationLoc = glGetUniformLocation(program, "rotation");
+    glUniformMatrix4fv(rotationLoc, 1, GL_FALSE, rotation.value_ptr());
+    glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, 0);
-    glDisableVertexAttribArray(0);
+    //glDisableVertexAttribArray(0);
 }
 
-void print_fps_counter(GLFWwindow *window) {
+void Object::print_fps_counter(GLFWwindow *window) {
     static double previousSeconds = glfwGetTime();
     static int frameCount = 0;
     double currentSeconds = glfwGetTime();
@@ -50,7 +61,6 @@ void print_fps_counter(GLFWwindow *window) {
     // Update the FPS once per second
     if (elapsedSeconds >= 1.0) {
         double fps = (double)frameCount / elapsedSeconds;
-
         // Reset the counter and timer
         previousSeconds = currentSeconds;
         frameCount = 0;
@@ -66,15 +76,36 @@ void print_fps_counter(GLFWwindow *window) {
 }
 
 void Object::renderer(){
-    cout << "now\n";
+    Mat4 projection = Mat4::perspective(90.0f * (M_PI / 180), (float)WIDTH/(float)HEIGHT, 1.0f, 100.0f);
+
+    Mat4 view = Mat4::lookAt(Vec3(3,1,3), Vec3(0,0,0), Vec3(0,1,0)); 
+    //first vec to place the camera in a 3D world
+    //second vec is actually where you look at, so origin here
+    //third vec is what is up, in our case, Y axis, so we rotateY() in draw call
+
+    Mat4 model;
+    
+    GLuint modelLoc = glGetUniformLocation(program, "model");
+    GLuint viewLoc = glGetUniformLocation(program, "view");
+    GLuint projectionLoc = glGetUniformLocation(program, "projection");
+
+    glUseProgram(program);
+    
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.value_ptr());
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.value_ptr());
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.value_ptr());
+
     while (!glfwWindowShouldClose(window))
 	{
 		print_fps_counter(window);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 0.6f);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		draw();
+        angle += 0.0005f; //jdois faire en sorte que ca soit smooth et pas link aux fps, c'est nul la
+        if (angle >= 360.0f)
+            angle = 0;
         glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -90,6 +121,7 @@ void    framebuffer_size_callback(GLFWwindow *window,int width, int height)
 }
 
 void Object::InitContext(){
+    //code found on learnopengl.com, good tutorials just follow that stuff
     if(!glfwInit()){
         cout << "problem init\n";
         return ;
@@ -116,6 +148,7 @@ void Object::InitContext(){
 }
 
 void Object::parseShader(){
+    //code on learnopengl.com again, explains in detail over there
     this->frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
     this->vtx_shader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -203,6 +236,7 @@ void Object::parseShader(){
 
 int Object::parseObj(string resource)
 {
+    //my lame parsing with some debug code in there
     if (!isObjFile(resource)){
         cout << "Not an obj file\n";
         return 0;
@@ -251,6 +285,7 @@ bool Object::isObjFile(const string filename){
 }
 
 void Object::storePoint(string line){
+    
     stringstream pointdata(line);
     string v, x, y, z;
     pointdata >> v >> x >> y >> z;
@@ -260,6 +295,11 @@ void Object::storePoint(string line){
     vertices.push_back(std::stof(y));
     vertices.push_back(std::stof(z));
 
+    //adding random colors at the back of it
+    vertices.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    vertices.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    vertices.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+
 }
 
 void Object::storeFace(string line){
@@ -268,22 +308,21 @@ void Object::storeFace(string line){
     facedata >> f >> a >> b >> c >> d >> e;
     
     //cout << facedata.str() << std::endl;
+    //the -1 is there to start the indices at 0, obj starts at 1, opengl at 0 so unless
+    //you want stuff to be all over the place, its necessary;
     if (!d.empty()){
-        indices.push_back(stoi(a));
-        indices.push_back(stoi(c));
-        indices.push_back(stoi(d));
-        _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(c)], _vertices[stoi(d)]));
+        indices.push_back(stoi(a) - 1);
+        indices.push_back(stoi(c) - 1);
+        indices.push_back(stoi(d) - 1);
     }
     if (!e.empty()){
-        indices.push_back(stoi(a));
-        indices.push_back(stoi(d));
-        indices.push_back(stoi(e));
-        _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(d)], _vertices[stoi(e)]));
+        indices.push_back(stoi(a) - 1);
+        indices.push_back(stoi(d) - 1);
+        indices.push_back(stoi(e) - 1);
     }
-    indices.push_back(stoi(a));
-    indices.push_back(stoi(b));
-    indices.push_back(stoi(c));
-    _triangles.push_back(new Triangle(_vertices[stoi(a)], _vertices[stoi(b)], _vertices[stoi(c)]));
+    indices.push_back(stoi(a) - 1);
+    indices.push_back(stoi(b) - 1);
+    indices.push_back(stoi(c) - 1);
 }
 
 
