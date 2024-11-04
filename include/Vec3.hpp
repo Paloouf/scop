@@ -6,6 +6,7 @@ class Vec3{
 		Vec3(float x,float y, float z) :x(x),y(y),z(z){}
 		Vec3() : x(0), y(0), z(0) {}
 		float x,y,z;
+		Vec3 operator+(const Vec3& other) const { return Vec3(x + other.x, y + other.y, z + other.z);}
 		Vec3 operator-(const Vec3& other) const { return Vec3(x - other.x, y - other.y, z - other.z); }
 		Vec3 operator*(float scalar) const { return Vec3(x * scalar, y * scalar, z * scalar); }
 
@@ -20,13 +21,13 @@ class Vec3{
 
 		static Vec3 findCentroid(const std::vector<float>& vertices) {
 			Vec3 centroid = {0.0f, 0.0f, 0.0f};
-			size_t vertexCount = vertices.size() / 6; // Each vertex has 6 components (x, y, z, r, g, b)
+			size_t vertexCount = vertices.size() / 8; // Each vertex has 6 components (x, y, z, r, g, b)
 
 			// Sum the coordinates
 			for (size_t i = 0; i < vertexCount; ++i) {
-				centroid.x += vertices[i * 6 + 0]; // x
-				centroid.y += vertices[i * 6 + 1]; // y
-				centroid.z += vertices[i * 6 + 2]; // z
+				centroid.x += vertices[i * 8 + 0]; // x
+				centroid.y += vertices[i * 8 + 1]; // y
+				centroid.z += vertices[i * 8 + 2]; // z
 			}
 
 			// Calculate average

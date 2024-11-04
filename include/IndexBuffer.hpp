@@ -12,4 +12,5 @@ class IndexBuffer {
 		void Unbind() const;
 		void Update(const void* data, unsigned int count);
 		unsigned int GetCount() const;
+		const GLuint &getIbo() const {return ibo;}
 };
