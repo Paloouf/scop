@@ -20,6 +20,7 @@ Object::~Object(){
     if (textureID) {
         glDeleteTextures(1, &textureID);
     }
+    glfwTerminate();
 }
 
 void Object::loadTexture(){
@@ -67,8 +68,6 @@ void Object::createBuffers(){
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindVertexArray(0);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    cout << ibo->GetCount() <<std::endl;
 }
 
 void Object::draw(){
@@ -204,6 +203,9 @@ void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
         obj->paused = !obj->paused; // Toggle pause on 'P' key press
     }
+    if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+        printf("Help: Press G to toggle between Line and Point mode\nPress T to toggle Texture\nPress P to pause the rotation\nUse WASD to move the object\n");
+    }
     if (key == GLFW_KEY_G && action == GLFW_PRESS) {
         if (obj->polygonMode == 0) {
             obj->polygonMode = 1;
@@ -218,35 +220,40 @@ void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
         }
     }
     if (key == GLFW_KEY_ESCAPE){
-        exit(1);
-
-        //free_all();
+        glfwSetWindowShouldClose(window, GL_TRUE);
     }
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_W) {
-            obj->yOffset += obj->translationSpeed; // Move up
+            obj->cameraYOffset += obj->translationSpeed;
+            obj->cameraYOffset = std::clamp(obj->cameraYOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_S) {
-            obj->yOffset -= obj->translationSpeed; // Move down
+            obj->cameraYOffset -= obj->translationSpeed;
+            obj->cameraYOffset = std::clamp(obj->cameraYOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_A) {
-            obj->xOffset -= obj->translationSpeed; // Move left
+            obj->cameraXOffset -= obj->translationSpeed;
+            obj->cameraXOffset = std::clamp(obj->cameraXOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_D) {
-            obj->xOffset += obj->translationSpeed; // Move right
+            obj->cameraXOffset += obj->translationSpeed;
+            obj->cameraXOffset = std::clamp(obj->cameraXOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_Q) {
-            obj->zOffset += obj->translationSpeed; // Move forward (increase Z)
+            obj->cameraZOffset += obj->translationSpeed;
+            obj->cameraZOffset = std::clamp(obj->cameraZOffset, -CAMERA_Z_LIMIT, CAMERA_Z_LIMIT);
         }
         if (key == GLFW_KEY_E) {
-            obj->zOffset -= obj->translationSpeed; // Move backward (decrease Z)
+            obj->cameraZOffset -= obj->translationSpeed;
+            obj->cameraZOffset = std::clamp(obj->cameraZOffset, -CAMERA_Z_LIMIT, CAMERA_Z_LIMIT);
         }
         if (key == GLFW_KEY_Z) {
-            obj->cameraDistance -= obj->zoomSpeed; // Zoom in by moving camera closer
-            if (obj->cameraDistance < 1.5f) obj->cameraDistance = 1.5f; // Prevent too close
+            obj->cameraDistance -= obj->zoomSpeed;
+            obj->cameraDistance = std::clamp(obj->cameraDistance, MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
         }
         if (key == GLFW_KEY_X) {
-            obj->cameraDistance += obj->zoomSpeed; // Zoom out by moving camera farther
+            obj->cameraDistance += obj->zoomSpeed;
+            obj->cameraDistance = std::clamp(obj->cameraDistance, MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
         }
     }
     if (key == GLFW_KEY_T && action == GLFW_PRESS) {
@@ -273,7 +280,11 @@ void Object::renderer(){
 	glEnable(GL_MULTISAMPLE);
     Mat4 projection = Mat4::perspective(90.0f * (M_PI / 180), (float)WIDTH/(float)HEIGHT, 1.0f, 1000.0f);
 
-    Vec3 cameraPos(0.0f, 0.0f, cameraDistance);
+    Vec3 cameraPos(
+            cameraXOffset, 
+            cameraYOffset, 
+            cameraDistance + cameraZOffset
+        );
     Vec3 target(0.0f, 0.0f, 0.0f); // Look at the origin
     Vec3 up(0.0f, 1.0f, 0.0f); 
     Mat4 view = Mat4::lookAt(cameraPos, target, up);
@@ -320,7 +331,11 @@ void Object::renderer(){
             if (angle >= 360.0f) angle -= 360.0f;
         }
 
-        cameraPos = Vec3(0.0f, 0.0f, cameraDistance);
+        cameraPos = Vec3(
+            cameraXOffset, 
+            cameraYOffset, 
+            cameraDistance + cameraZOffset
+        );
         target = cameraPos + front; // Target based on the camera's orientation
         view = Mat4::lookAt(cameraPos, target, up);
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.value_ptr());
@@ -470,6 +485,7 @@ void Object::parseShader(){
 	
 	glDeleteShader(vtx_shader);
 	glDeleteShader(frag_shader);
+    printf("Compilation successful\n");
 }
 
 void Object::parseMtlFile(const std::string& materialFile) {

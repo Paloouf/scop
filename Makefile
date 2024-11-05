@@ -5,7 +5,7 @@ OBJ = $(SRC:.cpp=.o)
 CC = c++
 
 LFLAGS = -lGL -lGLU -lglfw -lglut -lm
-FLAGS = -Wall -Werror -Wextra -std=c++11
+FLAGS = -Wall -Werror -Wextra -std=c++20
 
 INC = -I glad/include
 

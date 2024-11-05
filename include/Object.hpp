@@ -26,6 +26,9 @@ class Object{
         float xOffset = 0.0f;
         float yOffset = 0.0f;
         float zOffset = 0.0f;
+        float cameraXOffset = 0.0f;
+        float cameraYOffset = 0.0f;
+        float cameraZOffset = 0.0f;
         bool mousePressed = false;
         float cameraDistance = 5.0f; // Initial distance of the camera from the origin
         float zoomSpeed = 0.5f; 

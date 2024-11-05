@@ -8,6 +8,9 @@ int main(int argc, char** argv) {
     string av = argv[1];
     Object* obj = new Object(av);
     obj->renderer();
+
+    delete obj;
+    glfwTerminate();
     return 0;
 }
 
@@ -31,7 +34,6 @@ bool loadBMP(const std::string& filename, int& width, int& height, std::vector<u
     // Read the DIB header
     file.read(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
 
-    cout << infoHeader.bitCount << " " << infoHeader.compression << endl;
     // Check that it's a 24-bit BMP (no compression)
     if (infoHeader.bitCount != 24 || infoHeader.compression != 0) {
         std::cerr << "Only uncompressed 24-bit BMP files are supported" << std::endl;
