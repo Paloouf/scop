@@ -13,7 +13,7 @@ Object::Object(string filename) :_filename(filename){
 Object::Object(){}
 
 Object::~Object(){
-    //i need to free some shit probably
+    //functions to delete buffers from opengl
     glDeleteBuffers(1, &vbo->getVbo());
     glDeleteBuffers(1, &ibo->getIbo());
     glDeleteVertexArrays(1, &VAO);
@@ -43,7 +43,7 @@ void Object::loadTexture(){
     // Upload the texture data to OpenGL
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData.data());
     glGenerateMipmap(GL_TEXTURE_2D);
-    //glUseProgram(program);
+    glUseProgram(program);
     glUniform1i(glGetUniformLocation(program, "texture1"), 0);
 }
 
@@ -93,7 +93,6 @@ void Object::draw(){
     }
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, 0);
-    //glDisableVertexAttribArray(0);
 }
 
 void Object::print_fps_counter(GLFWwindow *window) {
@@ -122,6 +121,8 @@ void Object::print_fps_counter(GLFWwindow *window) {
     }
 }
 
+
+//THIS CAN PROBABLY BE FIXED TO USE THE CORRECT VNs and shit
 void applyTexture(std::vector<float>& vertices, int totalVertices) {
     int index = 0;
     while (index < totalVertices) {
@@ -147,50 +148,52 @@ void applyTexture(std::vector<float>& vertices, int totalVertices) {
     }
 }
 
-void Object::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
-    if (!obj) return;
-    (void)mods;
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        if (action == GLFW_PRESS) {
-            obj->mousePressed = true;
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        } else if (action == GLFW_RELEASE) {
-            obj->mousePressed = false;
-            obj->firstMouse = true;
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // Reset firstMouse to avoid jumps
-        }
-    }
-}
+
+//code to update the status of mouse button pressed or not to move the object around
+// void Object::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+//     Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
+//     if (!obj) return;
+//     (void)mods;
+//     if (button == GLFW_MOUSE_BUTTON_LEFT) {
+//         if (action == GLFW_PRESS) {
+//             obj->mousePressed = true;
+//             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//         } else if (action == GLFW_RELEASE) {
+//             obj->mousePressed = false;
+//             obj->firstMouse = true;
+//             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // Reset firstMouse to avoid jumps
+//         }
+//     }
+// }
 
 
+//code that aimed at doing mousecontrol but its cooked rn
+// void Object::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+//     Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
+//     if (!obj) return;
+//     if (!obj->mousePressed) return;
 
-void Object::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
-    if (!obj) return;
-    if (!obj->mousePressed) return;
+//     if (obj->firstMouse) { // Ignore the first mouse movement to avoid jump
+//         obj->lastX = xpos;
+//         obj->lastY = ypos;
+//         obj->firstMouse = false;
+//     }
 
-    if (obj->firstMouse) { // Ignore the first mouse movement to avoid jump
-        obj->lastX = xpos;
-        obj->lastY = ypos;
-        obj->firstMouse = false;
-    }
+//     float xOffset = xpos - obj->lastX;
+//     float yOffset = obj->lastY - ypos; // Reversed: y-coordinates go from bottom to top
+//     obj->lastX = xpos;
+//     obj->lastY = ypos;
 
-    float xOffset = xpos - obj->lastX;
-    float yOffset = obj->lastY - ypos; // Reversed: y-coordinates go from bottom to top
-    obj->lastX = xpos;
-    obj->lastY = ypos;
+//     xOffset *= obj->mouseSensitivity;
+//     yOffset *= obj->mouseSensitivity;
 
-    xOffset *= obj->mouseSensitivity;
-    yOffset *= obj->mouseSensitivity;
+//     obj->yaw += xOffset;
+//     obj->pitch += yOffset;
 
-    obj->yaw += xOffset;
-    obj->pitch += yOffset;
-
-    // Constrain the pitch to avoid gimbal lock
-    if (obj->pitch > 89.0f) obj->pitch = 89.0f;
-    if (obj->pitch < -89.0f) obj->pitch = -89.0f;
-}
+//     // Constrain the pitch to avoid gimbal lock
+//     if (obj->pitch > 89.0f) obj->pitch = 89.0f;
+//     if (obj->pitch < -89.0f) obj->pitch = -89.0f;
+// }
 
 
 void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -199,6 +202,7 @@ void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     (void)mods;
     if (!obj){
         cout << "obj is null\n";
+        return;
     }
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
         obj->paused = !obj->paused; // Toggle pause on 'P' key press
@@ -317,10 +321,7 @@ void Object::renderer(){
     front.z = sin(yaw * (M_PI / 180)) * cos(pitch * (M_PI / 180));
     front = front.normalize();
     while (!glfwWindowShouldClose(window))
-	{
-
-        
-        //glfwSetKeyCallback(window, Object::keyCallback);
+	{        
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime; // Calculate time difference
         lastTime = currentTime;
@@ -340,14 +341,12 @@ void Object::renderer(){
         view = Mat4::lookAt(cameraPos, target, up);
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.value_ptr());
         print_fps_counter(window);
-		glClearColor(0.1f, 0.1f, 0.1f, 0.6f);
-		
+		glClearColor(0.1f, 0.1f, 0.1f, 0.6f); //set background color to dark grey	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		draw();
+		draw(); //homemade draw call
         glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-    //free_all(); fonction a faire
 }
 
 void    framebuffer_size_callback(GLFWwindow *window,int width, int height)
@@ -389,10 +388,14 @@ void Object::InitContext(){
     glfwSetWindowUserPointer(window, this);
 
     // Set the key callback to the static member function
-    glfwSetMouseButtonCallback(window, Object::mouseButtonCallback);
-    glfwSetCursorPosCallback(window, Object::mouseCallback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //these are for mouse use but kinda cooked atm
+    //glfwSetMouseButtonCallback(window, Object::mouseButtonCallback);
+    //glfwSetCursorPosCallback(window, Object::mouseCallback);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    //key inputs
     glfwSetKeyCallback(window, Object::keyCallback);
+    //resizing callback
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 	    cout << "Failed to initialize GLAD\n";
@@ -543,7 +546,6 @@ int Object::parseObj(string resource)
     ifstream file(resource.c_str());
     if (!file.is_open()){
         cerr << "probleme open" << endl;
-        //exit(1); et free aussi partout 
         return 0;
     }
     std::string line;
@@ -584,7 +586,6 @@ void Object::storePoint(string line){
     string v, x, y, z;
     pointdata >> v >> x >> y >> z;
     //cout << pointdata.str() << std::endl;
-    //_vertices.insert(make_pair(vertexIndex, new Vertex(stod(x), stod(y), stod(z))));
     vertices.push_back(std::stof(x));
     vertices.push_back(std::stof(y));
     vertices.push_back(std::stof(z));
