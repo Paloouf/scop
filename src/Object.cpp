@@ -150,50 +150,50 @@ void applyTexture(std::vector<float>& vertices, int totalVertices) {
 
 
 //code to update the status of mouse button pressed or not to move the object around
-// void Object::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-//     Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
-//     if (!obj) return;
-//     (void)mods;
-//     if (button == GLFW_MOUSE_BUTTON_LEFT) {
-//         if (action == GLFW_PRESS) {
-//             obj->mousePressed = true;
-//             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-//         } else if (action == GLFW_RELEASE) {
-//             obj->mousePressed = false;
-//             obj->firstMouse = true;
-//             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // Reset firstMouse to avoid jumps
-//         }
-//     }
-// }
+void Object::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
+    if (!obj) return;
+    (void)mods;
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            obj->mousePressed = true;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } else if (action == GLFW_RELEASE) {
+            obj->mousePressed = false;
+            obj->firstMouse = true;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // Reset firstMouse to avoid jumps
+        }
+    }
+}
 
 
 //code that aimed at doing mousecontrol but its cooked rn
-// void Object::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-//     Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
-//     if (!obj) return;
-//     if (!obj->mousePressed) return;
+void Object::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    Object* obj = static_cast<Object*>(glfwGetWindowUserPointer(window));
+    if (!obj) return;
+    if (!obj->mousePressed) return;
+    cout << xpos << ypos << endl;
+    if (obj->firstMouse) { // Ignore the first mouse movement to avoid jump
+        obj->lastX = xpos;
+        obj->lastY = ypos;
+        obj->firstMouse = false;
+    }
 
-//     if (obj->firstMouse) { // Ignore the first mouse movement to avoid jump
-//         obj->lastX = xpos;
-//         obj->lastY = ypos;
-//         obj->firstMouse = false;
-//     }
+    float xOffset = xpos - obj->lastX;
+    float yOffset = obj->lastY - ypos; // Reversed: y-coordinates go from bottom to top
+    obj->lastX = xpos;
+    obj->lastY = ypos;
 
-//     float xOffset = xpos - obj->lastX;
-//     float yOffset = obj->lastY - ypos; // Reversed: y-coordinates go from bottom to top
-//     obj->lastX = xpos;
-//     obj->lastY = ypos;
+    xOffset *= obj->mouseSensitivity;
+    yOffset *= obj->mouseSensitivity;
 
-//     xOffset *= obj->mouseSensitivity;
-//     yOffset *= obj->mouseSensitivity;
+    obj->yaw += xOffset;
+    obj->pitch += yOffset;
 
-//     obj->yaw += xOffset;
-//     obj->pitch += yOffset;
-
-//     // Constrain the pitch to avoid gimbal lock
-//     if (obj->pitch > 89.0f) obj->pitch = 89.0f;
-//     if (obj->pitch < -89.0f) obj->pitch = -89.0f;
-// }
+    // Constrain the pitch to avoid gimbal lock
+    if (obj->pitch > 89.0f) obj->pitch = 89.0f;
+    if (obj->pitch < -89.0f) obj->pitch = -89.0f;
+}
 
 
 void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -228,11 +228,11 @@ void Object::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     }
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_W) {
-            obj->cameraYOffset += obj->translationSpeed;
+            obj->cameraYOffset -= obj->translationSpeed;
             obj->cameraYOffset = std::clamp(obj->cameraYOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_S) {
-            obj->cameraYOffset -= obj->translationSpeed;
+            obj->cameraYOffset += obj->translationSpeed;
             obj->cameraYOffset = std::clamp(obj->cameraYOffset, -CAMERA_XY_LIMIT, CAMERA_XY_LIMIT);
         }
         if (key == GLFW_KEY_A) {
@@ -389,9 +389,9 @@ void Object::InitContext(){
 
     // Set the key callback to the static member function
     //these are for mouse use but kinda cooked atm
-    //glfwSetMouseButtonCallback(window, Object::mouseButtonCallback);
-    //glfwSetCursorPosCallback(window, Object::mouseCallback);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetMouseButtonCallback(window, Object::mouseButtonCallback);
+    glfwSetCursorPosCallback(window, Object::mouseCallback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     //key inputs
     glfwSetKeyCallback(window, Object::keyCallback);

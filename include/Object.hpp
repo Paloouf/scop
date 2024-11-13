@@ -47,7 +47,7 @@ class Object{
         float translationSpeed = 2.0f;
         float yaw = -90.0f;  // Initial yaw to look forward
         float pitch = 0.0f;  // Initial pitch
-        float mouseSensitivity = 0.05f;
+        float mouseSensitivity = 0.1f;
         bool firstMouse = true; // Track if it's the first mouse movement
         float lastX = WIDTH / 2.0f; // Initial last mouse X position
         float lastY = HEIGHT / 2.0f;
